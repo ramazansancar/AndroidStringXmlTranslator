@@ -1,0 +1,509 @@
+
+<!DOCTYPE html>
+<head>
+<meta charset="utf-8" />
+<title>Translator for Android Apps (strings.xml)</title>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<script src="https://unpkg.com/react@17/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+<style>
+    .formatting-node > abbr {
+      color: #888;
+      font-family: monospace;
+    }
+
+    .formatting-node > * {
+      display: inline;
+    }
+
+    /* make consecutive <abbr>s distinguishable, so the user notices there are multiple explanations */
+    abbr:hover {
+      text-decoration: underline;
+    }
+
+    table {
+      width: 100%;
+      table-layout: fixed;
+    }
+
+    tr:nth-child(odd) {
+      background: #f5f5f5;
+    }
+
+    thead {
+      position: sticky;
+      top: 0;
+    }
+
+    th {
+      text-align: start;
+    }
+
+    select {
+      width: 100%;
+    }
+    option:first-child {
+      color: #888;
+    }
+
+    textarea {
+      box-sizing: content-box;
+      height: 16px;
+      width: calc(100% - 1em);
+      padding-right: 1em;
+    }
+
+    .download-btn {
+      font-size: 2em;
+      padding: 1em;
+      width: 100%;
+      margin: 0.5em 0;
+    }
+
+    #strings-xml-toggle:not(:checked) ~ .strings-xml {
+      display: none;
+    }
+
+    .strings-xml {
+      color: #666;
+      background: #f5f5f5;
+      padding: 0.5em;
+    }
+
+    /* Missing translation */
+    ::placeholder {
+      color: white;
+      opacity: 1; /* Firefox */
+    }
+
+    ::-ms-input-placeholder { /* Edge 12 -18 */
+      color: white;
+    }
+  </style>
+</head>
+<body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif">
+<div id="appWrapper">Loading...</div>
+<script type="text/babel">
+    const { useState, useEffect, useRef } = React
+    const RESOURCE_DUMMY = document.createElement('resources')
+    const DOWNLOAD_LINK = document.createElement('a')
+    DOWNLOAD_LINK.download = `strings.xml`
+
+    // Configurable options
+    /*const repo = 'yuliskov/SmartTubeNext'
+    const path = 'common/src/main/res'
+    const branch = 'master'*/
+    const repo = 'emanuele-f/PCAPdroid'
+    const path = 'app/src/main/res'
+    const branch = 'master'
+
+
+    const splitReplace = (str, regexp, replacer) => {
+      const res = []
+      let lastIndex = 0
+      str.replace(regexp, (match, ...args) => {
+        const i = args[args.length - 2]
+        if (i > 0) {
+          res.push(str.substring(lastIndex, i))
+        }
+        const replacement = replacer(res.length, match, ...args)
+        if (replacement != null) {
+          res.push(replacement)
+        }
+        lastIndex = i + match.length
+      })
+      if (lastIndex != str.length - 1) {
+        res.push(str.substr(lastIndex))
+      }
+      return res
+    }
+
+    const addWordBreaks = (str) => (
+      splitReplace(str, /_/g, (_) => ["_", <wbr />])
+    )
+
+    const specialSymbolExplanations = {
+      '\\n': 'line break',
+      '\\t': 'tab separator',
+    }
+    const placeholderExplanation =
+      'placeholder, please keep as-is in your translation'
+    const formattingNodeExplanationPre = 'formatting element'
+    const formattingNodeExplanationEnd = 'end of formatting element'
+    const formattingNodeExplanations = {
+      b: 'bold',
+      em: 'bold',
+      i: 'italic',
+      cite: 'italic',
+      dfn: 'italic',
+      big: '25% larger text',
+      small: '20% smaller text',
+      font: 'setting font properties',
+      tt: 'setting a monospace font family',
+      s: 'strikethrough',
+      strike: 'strikethrough',
+      del: 'strikethrough',
+      u: 'underline',
+      sup: 'superscript',
+      sub: 'subscript',
+      ul: 'list (with bullet points)',
+      li: 'list item (with bullet point)',
+      br: 'line break',
+      div: 'block element',
+      span: 'text element',
+      p: 'paragraph',
+    }
+    const getFormattingNodeExplanation = (tagName) =>
+      tagName in formattingNodeExplanations
+        ? `${formattingNodeExplanationPre}: ${formattingNodeExplanations[tagName]}`
+        : formattingNodeExplanationPre
+    const formatTranslatableString = (str) =>
+      splitReplace(
+        str,
+        /%(?:\d+\$)?\w|\\n|\\t|\n|(<(\w+)[^>]*?>)(.*?)<\/\w+>/g,
+        (key, match, openingTag, TagName, children) =>
+          !openingTag ? (
+            match === '\n' ? (
+              <br key={key} />
+            ) : (
+              <abbr
+                key={key}
+                title={
+                  specialSymbolExplanations[match] || placeholderExplanation
+                }
+              >
+                {match}
+              </abbr>
+            )
+          ) : (
+            <span key={key} className="formatting-node">
+              <abbr title={getFormattingNodeExplanation(TagName)}>
+                {openingTag}
+              </abbr>
+              <TagName>{formatTranslatableString(children)}</TagName>
+              <abbr
+                title={formattingNodeExplanationEnd}
+              >{`</${TagName}>`}</abbr>
+            </span>
+          )
+      )
+
+    const parseStringsXml = (rawXml) => {
+      const root = document.createElement('div')
+      root.innerHTML = rawXml
+      const res = {}
+      for (const string of root.querySelectorAll(
+        'string[name]:not([translatable="false"])'
+      )) {
+        const name = string.getAttribute('name')
+        const value = string.textContent
+          .replace(/\\("|'|@|\?)/g, '$1')
+          .replace(/^"(.*)"$/, '$&')
+        res[name] = value
+      }
+      root.innerHTML = ''
+      return res
+    }
+
+    const PlaceholderWarning = ({ english, translation }) => {
+      const getPlaceholders = (str) =>
+        [...str.matchAll(/%(?:\d+\$)?\w/g)].map(([match]) => match)
+      const comparePlaceholders = () => {
+        const placeholdersEn = getPlaceholders(english)
+        const placeholdersTranslation = getPlaceholders(translation)
+        if (placeholdersEn.length !== placeholdersTranslation.length) {
+          return false
+        } else {
+          for (let i = 0; i < placeholdersEn.length; i++) {
+            if (placeholdersEn[i] !== placeholdersTranslation[i]) {
+              return false
+            }
+          }
+          return true
+        }
+      }
+
+      if (translation && !comparePlaceholders()) {
+        return (
+          <div title="You should have the same placeholders in your translation as in the English version!">
+            ⚠️
+          </div>
+        )
+      } else {
+        return []
+      }
+    }
+
+    const generateStringsXml = (strings) => {
+      RESOURCE_DUMMY.innerHTML = ''
+      // Source: https://stackoverflow.com/a/19217314
+      strings = Object.keys(strings).sort().map(function(k) {
+        return {
+          key: k, value: strings[k]
+        }
+      });
+      strings.forEach(function(s) {
+        RESOURCE_DUMMY.appendChild(document.createTextNode('\n  '))
+
+        const el = document.createElement('string')
+        el.setAttribute('name', s.key)
+        el.textContent = s.value.replace(/[@\?'"]/g, '\\$&').replace(/\n/g)
+        RESOURCE_DUMMY.appendChild(el)
+      });
+      /*for (const key in strings) {
+        RESOURCE_DUMMY.appendChild(document.createTextNode('\n  '))
+
+        const el = document.createElement('string')
+        el.setAttribute('name', key)
+        el.textContent = strings[key].replace(/[@\?'"]/g, '\\$&').replace(/\n/g)
+        RESOURCE_DUMMY.appendChild(el)
+      }*/
+      RESOURCE_DUMMY.appendChild(document.createTextNode('\n'))
+      return `<?xml version="1.0" encoding="utf-8"?>\n${RESOURCE_DUMMY.outerHTML}\n`
+    }
+
+    const Page = () => {
+      const [locales, setLocales] = useState([])
+      const [localeDescriptions, setLocaleDescriptions] = useState({})
+      const [stringsEn, setStringsEn] = useState({})
+      const [stringsTranslation, setStringsTranslation] = useState({})
+      const [stringsTranslationXml, setStringsTranslationXml] = useState('')
+      const [selectedLang, setSelectedLang] = useState('')
+      const fileInputRef = useRef()
+
+      window.data = {
+        locales,
+        stringsEn,
+        stringsTranslation,
+        selectedLang,
+        setStringsEn,
+      }
+
+      const loadStringsXml = (valuesFolderName) =>
+        fetch(
+            // `https://raw.githubusercontent.com/yuliskov/SmartTubeNext/master/common/src/main/res/${valuesFolderName}/strings.xml`
+            `https://raw.githubusercontent.com/${repo}/${branch}/${path}/${valuesFolderName}/strings.xml`
+          
+        )
+          .then((r) => r.text())
+          .then(parseStringsXml)
+      const updateLangs = async (valuesFolderName) =>
+        setStringsTranslation(await loadStringsXml(valuesFolderName))
+
+      useEffect(() => {
+        const localesPromise = fetch(
+            // 'https://api.github.com/repos/yuliskov/SmartTubeNext/contents/common/src/main/res'
+            `https://api.github.com/repos/${repo}/contents/${path}`
+        )
+          .then((r) => r.json())
+          .then((valueFolders) => {
+            const localesList = valueFolders
+                .map((folder) => folder.name.split('values-')[1])
+                .filter((l) => l != null)
+                .filter((l) => l !== 'en')
+                .filter((l) => l !== 'night-v8')
+                .filter((l) => l !== 'sw600dp')
+            setLocales(localesList)
+            return localesList
+          })
+
+        loadStringsXml('values').then(setStringsEn)
+
+        fetch(
+          // 'https://raw.githubusercontent.com/mattcg/language-subtag-registry/master/data/json/registry.json'
+            'https://raw.githubusercontent.com/mattcg/language-subtag-registry/master/data/json/registry.json'
+        )
+          .then((r) => r.json())
+          .then(async (subtagRegistry) => {
+            const locales = await localesPromise
+            const languages = {},
+              regions = {}
+            for (const locale of locales) {
+              let [language, region] = locale.split('-')
+              languages[language.toLowerCase()] = true
+              if (region) {
+                regions[region.substr(1).toUpperCase()] = true
+              }
+            }
+            for (const entry of subtagRegistry) {
+              switch (entry.Type) {
+                case 'language':
+                  if (entry.Subtag in languages) {
+                    languages[entry.Subtag] = entry.Description
+                  }
+                  break
+
+                case 'region':
+                  if (entry.Subtag in regions) {
+                    regions[entry.Subtag] = entry.Description
+                  }
+              }
+            }
+            const newLocaleDescriptions = {}
+            for (const locale of locales) {
+              const [language, region] = locale.split('-')
+              const descriptionsLanguage = languages[language.toLowerCase()]
+              if (descriptionsLanguage) {
+                let description = `- ${descriptionsLanguage.join(', ')}`
+
+                const descriptionsRegion =
+                  region && regions[region.substr(1).toUpperCase()]
+                if (descriptionsRegion) {
+                  description += ` (${descriptionsRegion.join(', ')})`
+                }
+                newLocaleDescriptions[locale] = description
+              }
+            }
+
+            // usually "Chinese (Taiwan, Province of China)"
+            // let's simplify this to "Taiwanese" to avoid a shitstorm from Taiwanese separatists
+            newLocaleDescriptions['zh-rTW'] = '- Taiwanese'
+
+            setLocaleDescriptions(newLocaleDescriptions)
+          })
+      }, [])
+
+      useEffect(async () => {
+        if(selectedLang === 'import'){
+          setSelectedLang('new')
+          if (fileInputRef.current) {
+            fileInputRef.current.click()
+          }
+        }else if (selectedLang !== '' && selectedLang !== 'new'){
+          const strings = await loadStringsXml(`values-${selectedLang}`)
+          setStringsTranslation(strings)
+          setStringsTranslationXml(generateStringsXml(strings))
+        }else if(selectedLang === 'new'){
+          setStringsTranslation({})
+          setStringsTranslationXml(generateStringsXml({}))
+        }
+      }, [selectedLang])
+
+      const changeSelectedLang = (e) => {
+        console.log('onChange', e)
+        setSelectedLang(e.target.value)
+      }
+      const fixTextareaSize = (event) => {
+        event.target.style.height = `${event.target.scrollHeight - 4}px`
+      }
+      const onTranslationInput = (event, key) => {
+        const newStringsTranslation = {
+          ...stringsTranslation,
+          [key]: event.target.value,
+        }
+        setStringsTranslation(newStringsTranslation)
+        setStringsTranslationXml(generateStringsXml(newStringsTranslation))
+        fixTextareaSize(event)
+      }
+
+      const download = () => {
+        const blobUrl = URL.createObjectURL(new Blob([stringsTranslationXml]))
+        DOWNLOAD_LINK.href = blobUrl
+        DOWNLOAD_LINK.click()
+        URL.revokeObjectURL(blobUrl)
+      }
+
+      const readFileAsText = (file) => {
+        return new Promise(function (resolve, reject) {
+          const reader = new FileReader()
+          reader.onload = function (e) { resolve(e.target.result) }
+          reader.onerror = function (e) { reject(new Error('Error reading' + file.name + ': ' + e.target.result)) }
+          reader.readAsText(file)
+        })
+      }
+      const onFileChange = async (event) => {
+        try {
+          const stringsRaw = await readFileAsText(event.currentTarget.files[0])
+          const strings = parseStringsXml(stringsRaw)
+          console.log(window.strings = strings, window.stringsRaw = stringsRaw)
+          setStringsTranslation(strings)
+          setStringsTranslationXml(generateStringsXml(strings))
+        } catch(err) {
+          alert(err)
+        }
+      }
+
+      return (
+        <div>
+          <h1>Translator for Android Apps (strings.xml)</h1>
+          <p>
+            Select your language (or "new language") in the dropdown on the right, then start
+            correcting and adding translations! When you're done, click the
+            download button at the bottom of the table and submit your
+            strings.xml to the app developers. Remember to also mention your
+            locale identifier code! (e.g. "de" or "pt-BR")<br />
+          </p>
+          <input type="file" onChange={onFileChange} style={{display: 'none'}} ref={fileInputRef} />
+          <table>
+            <thead>
+              <tr>
+                <th>Keyword</th>
+                <th>English</th>
+                {/*<th>Missing translation</th>*/}
+                <th>
+                  <select value={selectedLang} onChange={changeSelectedLang}>
+                    <option disabled value="">select language</option>
+                    <option value="new">new language</option>
+                    <option value="import">import file</option>
+                    <option disabled></option>
+                    {locales.map((lang) => (
+                      <option key={lang} value={lang}>
+                        {lang.replace('-r', '-')} {localeDescriptions[lang]}
+                      </option>
+                    ))}
+                  </select>
+                </th>
+                <th width="32px" />
+              </tr>
+            </thead>
+            <tbody>
+              {Object.keys(stringsEn).sort().map((key) => (
+                <tr key={key} style={{/*backgroundColor: (stringsTranslation[key] !== '' ) ? 'red' : ''*/}}>
+                  <td>{addWordBreaks(key)}</td>
+                  <td>{formatTranslatableString(stringsEn[key])}</td>
+                  {/*<td>{((typeof stringsTranslation[key] === 'undefined') || (stringsTranslation[key] === '')) ? 'Missing' : ''}</td>*/}
+                  <td>
+                    {
+                      <textarea
+                        value={stringsTranslation[key] || ''}
+                        placeholder="translation missing!"
+                        onFocus={fixTextareaSize}
+                        onChange={(e) => onTranslationInput(e, key)}
+                        style={{
+                          backgroundColor: ((typeof stringsTranslation[key] === 'undefined') || (stringsTranslation[key] === '')) ? 'red' : ''
+                        }}
+                      />
+                    }
+                  </td>
+                  <th>
+                    <PlaceholderWarning
+                      english={stringsEn[key]}
+                      translation={stringsTranslation[key]}
+                    />
+                  </th>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <button className="download-btn" onClick={download}>
+            download strings.xml
+          </button>
+          <input
+            id="strings-xml-toggle"
+            type="checkbox"
+            onClick={() =>
+              (document.documentElement.scrollTop +=
+                document.documentElement.clientHeight - 50)
+            }
+          />
+          <label for="strings-xml-toggle"> show preview for strings.xml</label>
+          <pre className="strings-xml">{stringsTranslationXml}</pre>
+        </div>
+      )
+    }
+
+    ReactDOM.render(<Page />, appWrapper)
+  </script>
+</body>
