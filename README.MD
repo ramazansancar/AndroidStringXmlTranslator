@@ -7,6 +7,7 @@ This is a html page that can be used to translate Android string XML files.
 Firstly, `repo`, `path` and `branch` constant are required to be set in the html file.
 
 Example:
+
 ```js
 const repo = 'emanuele-f/PCAPdroid'
 const path = 'app/src/main/res'
