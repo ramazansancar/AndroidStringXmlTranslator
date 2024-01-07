@@ -435,6 +435,11 @@
             strings.xml to the app developers. Remember to also mention your
             locale identifier code! (e.g. "de" or "pt-BR")<br />
           </p>
+          <p>
+          Repository: <a href={`https://github\.com/${repo}`}>{repo}</a><br />
+          Translation path: <a href={`https://github\.com/${repo}/tree/${branch}/${path}`}>{path}</a><br />
+          Branch: {branch}<br />
+          </p>
           <input type="file" onChange={onFileChange} style={{display: 'none'}} ref={fileInputRef} />
           <table>
             <thead>
