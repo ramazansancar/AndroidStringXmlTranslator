@@ -1,14 +1,24 @@
-
 <!DOCTYPE html>
+<html lang="en">
 <head>
-<meta charset="utf-8" />
-<title>Translator for Android Apps (strings.xml)</title>
-<meta http-equiv="X-UA-Compatible" content="IE=edge" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<script src="https://unpkg.com/react@17/umd/react.development.js"></script>
-<script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
-<script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
-<style>
+  <meta charset="utf-8" />
+  <title>Translator for Android Apps (strings.xml)</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://unpkg.com/react@17/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: #f9f9f9;
+      color: #333;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    #appWrapper {
+      padding: 20px;
+    }
     .formatting-node > abbr {
       color: #888;
       font-family: monospace;
@@ -56,10 +66,20 @@
     }
 
     .download-btn {
-      font-size: 2em;
-      padding: 1em;
+      font-size: 1.2em;
+      padding: 0.5em 1em;
       width: 100%;
-      margin: 0.5em 0;
+      margin: 1em 0;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .download-btn:hover {
+      background-color: #0056b3;
     }
 
     #strings-xml-toggle:not(:checked) ~ .strings-xml {
@@ -86,7 +106,7 @@
       background-color: #f9f9f9;
       border: 1px solid #ddd;
       padding: 20px;
-      margin: 20px 0;
+      margin: 20px 20px 0 20px;
       border-radius: 8px;
     }
 
@@ -115,30 +135,45 @@
       padding: 2px 4px;
       border-radius: 4px;
     }
+    .repo-info {
+      background-color: #e9ecef;
+      border: 1px solid #ced4da;
+      padding: 10px;
+      margin: 20px 0;
+      border-radius: 5px;
+    }
+
+    .repo-info a {
+      color: #007bff;
+      text-decoration: none;
+    }
+
+    .repo-info a:hover {
+      text-decoration: underline;
+    }
   </style>
 </head>
-<body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif">
-<div class="information">
-  <h2>How to Configure the Repository, Path, and Branch</h2>
-  <p>
-    You can customize the repository, path, and branch by adding query parameters to the URL. Here are the available parameters:
-  </p>
-  <ul>
-    <li><strong>repo</strong>: The GitHub repository in the format <code>username/repo</code>. Default is <code>emanuele-f/PCAPdroid</code>.</li>
-    <li><strong>path</strong>: The path to the strings.xml file within the repository. Default is <code>app/src/main/res</code>.</li>
-    <li><strong>branch</strong>: The branch of the repository. Default is <code>master</code>.</li>
-  </ul>
-  <p>Examples:</p>
-  <ul>
-    <li><code>?repo=example/repo&path=src/res&branch=develop</code></li>
-    <li><code>?repo=another/repo&path=resources/strings&branch=feature-branch</code></li>
-    <li><code>?repo=emanuele-f/PCAPdroid&path=app/src/main/res&branch=master</code></li>
-    <li><code>?repo=mostafaalagamy/Metrolist&path=app/src/main/res&branch=main</code></li>
-  </ul>
-</div>
-<div id="appWrapper">Loading...</div>
-
-<script type="text/babel">
+<body>
+  <div class="information">
+    <h2>How to Configure the Repository, Path, and Branch</h2>
+    <p>
+      You can customize the repository, path, and branch by adding query parameters to the URL. Here are the available parameters:
+    </p>
+    <ul>
+      <li><strong>repo</strong>: The GitHub repository in the format <code>username/repo</code>. Default is <code>emanuele-f/PCAPdroid</code>.</li>
+      <li><strong>path</strong>: The path to the strings.xml file within the repository. Default is <code>app/src/main/res</code>.</li>
+      <li><strong>branch</strong>: The branch of the repository. Default is <code>master</code>.</li>
+    </ul>
+    <p>Examples:</p>
+    <ul>
+      <li><code>?repo=example/repo&path=src/res&branch=develop</code></li>
+      <li><code>?repo=yuliskov/SmartTubeNext&path=common/src/main/res&branch=master</code></li>
+      <li><code>?repo=emanuele-f/PCAPdroid&path=app/src/main/res&branch=master</code></li>
+      <li><code>?repo=mostafaalagamy/Metrolist&path=app/src/main/res&branch=main</code></li>
+    </ul>
+  </div>
+  <div id="appWrapper">Loading...</div>
+  <script type="text/babel">
     const { useState, useEffect, useRef } = React
     const RESOURCE_DUMMY = document.createElement('resources')
     const DOWNLOAD_LINK = document.createElement('a')
@@ -152,7 +187,6 @@
     const repo = urlParams.get('repo') || 'emanuele-f/PCAPdroid';
     const path = urlParams.get('path') || 'app/src/main/res';
     const branch = urlParams.get('branch') || 'master';
-
 
     const splitReplace = (str, regexp, replacer) => {
       const res = []
@@ -489,11 +523,11 @@
             strings.xml to the app developers. Remember to also mention your
             locale identifier code! (e.g. "de" or "pt-BR")<br />
           </p>
-          <p>
-          Repository: <a href={`https://github\.com/${repo}`}>{repo}</a><br />
-          Translation path: <a href={`https://github\.com/${repo}/tree/${branch}/${path}`}>{path}</a><br />
-          Branch: {branch}<br />
-          </p>
+          <div class="repo-info">
+            <span>Repository: <a href={`https://github.com/${repo}`}>{repo}</a></span><br />
+            <span>Translation path: <a href={`https://github.com/${repo}/tree/${branch}/${path}`}>{path}</a></span><br />
+            <span>Branch: <a href={`https://github.com/${repo}/tree/${branch}/`}>{branch}</a></span><br />
+          </div>
           <button className="download-btn" onClick={download}>
             download strings.xml
           </button>
@@ -560,7 +594,7 @@
                 document.documentElement.clientHeight - 50)
             }
           />
-          <label for="strings-xml-toggle"> show preview for strings.xml</label>
+          <label for="strings-xml-toggle">Show preview for strings.xml</label>
           <pre className="strings-xml">{stringsTranslationXml}</pre>
         </div>
       )
@@ -569,3 +603,4 @@
     ReactDOM.render(<Page />, appWrapper)
   </script>
 </body>
+</html>
