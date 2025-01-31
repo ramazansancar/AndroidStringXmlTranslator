@@ -81,10 +81,63 @@
     ::-ms-input-placeholder { /* Edge 12 -18 */
       color: white;
     }
+
+    .information {
+      background-color: #f9f9f9;
+      border: 1px solid #ddd;
+      padding: 20px;
+      margin: 20px 0;
+      border-radius: 8px;
+    }
+
+    .information h2 {
+      margin-top: 0;
+      font-size: 1.5em;
+      color: #333;
+    }
+
+    .information p {
+      font-size: 1em;
+      color: #666;
+    }
+
+    .information ul {
+      list-style-type: disc;
+      padding-left: 20px;
+    }
+
+    .information li {
+      margin-bottom: 10px;
+    }
+
+    .information code {
+      background-color: #eee;
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
   </style>
 </head>
 <body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif">
+<div class="information">
+  <h2>How to Configure the Repository, Path, and Branch</h2>
+  <p>
+    You can customize the repository, path, and branch by adding query parameters to the URL. Here are the available parameters:
+  </p>
+  <ul>
+    <li><strong>repo</strong>: The GitHub repository in the format <code>username/repo</code>. Default is <code>emanuele-f/PCAPdroid</code>.</li>
+    <li><strong>path</strong>: The path to the strings.xml file within the repository. Default is <code>app/src/main/res</code>.</li>
+    <li><strong>branch</strong>: The branch of the repository. Default is <code>master</code>.</li>
+  </ul>
+  <p>Examples:</p>
+  <ul>
+    <li><code>?repo=example/repo&path=src/res&branch=develop</code></li>
+    <li><code>?repo=another/repo&path=resources/strings&branch=feature-branch</code></li>
+    <li><code>?repo=emanuele-f/PCAPdroid&path=app/src/main/res&branch=master</code></li>
+    <li><code>?repo=mostafaalagamy/Metrolist&path=app/src/main/res&branch=main</code></li>
+  </ul>
+</div>
 <div id="appWrapper">Loading...</div>
+
 <script type="text/babel">
     const { useState, useEffect, useRef } = React
     const RESOURCE_DUMMY = document.createElement('resources')
@@ -95,9 +148,10 @@
     /*const repo = 'yuliskov/SmartTubeNext'
     const path = 'common/src/main/res'
     const branch = 'master'*/
-    const repo = 'emanuele-f/PCAPdroid'
-    const path = 'app/src/main/res'
-    const branch = 'master'
+    const urlParams = new URLSearchParams(window.location.search);
+    const repo = urlParams.get('repo') || 'emanuele-f/PCAPdroid';
+    const path = urlParams.get('path') || 'app/src/main/res';
+    const branch = urlParams.get('branch') || 'master';
 
 
     const splitReplace = (str, regexp, replacer) => {
@@ -440,6 +494,9 @@
           Translation path: <a href={`https://github\.com/${repo}/tree/${branch}/${path}`}>{path}</a><br />
           Branch: {branch}<br />
           </p>
+          <button className="download-btn" onClick={download}>
+            download strings.xml
+          </button>
           <input type="file" onChange={onFileChange} style={{display: 'none'}} ref={fileInputRef} />
           <table>
             <thead>
