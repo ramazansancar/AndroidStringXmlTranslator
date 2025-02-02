@@ -203,6 +203,7 @@
     const repo = urlParams.get('repo') || 'emanuele-f/PCAPdroid';
     const path = urlParams.get('path') || 'app/src/main/res';
     const branch = urlParams.get('branch') || 'master';
+    //const sort = urlParams.get('sort') === 'false' ? false : true || false; Sort removed. It was not working properly. (const generateStringsXml || <tbody>)
 
     const splitReplace = (str, regexp, replacer) => {
       const res = []
@@ -343,7 +344,7 @@
     const generateStringsXml = (strings) => {
       RESOURCE_DUMMY.innerHTML = ''
       // Source: https://stackoverflow.com/a/19217314
-      strings = Object.keys(strings).sort().map(function(k) {
+      strings = Object.keys(strings).map(function(k) {
         return {
           key: k, value: strings[k]
         }
@@ -416,7 +417,7 @@
 
         fetch(
           // 'https://raw.githubusercontent.com/mattcg/language-subtag-registry/master/data/json/registry.json'
-            'https://raw.githubusercontent.com/mattcg/language-subtag-registry/master/data/json/registry.json'
+            'https://raw.githubusercontent.com/ramazansancar/mattcg_language-subtag-registry/master/data/json/registry.json'
         )
           .then((r) => r.json())
           .then(async (subtagRegistry) => {
@@ -469,16 +470,16 @@
       }, [])
 
       useEffect(async () => {
-        if(selectedLang === 'import'){
+        if (selectedLang === 'import') {
           setSelectedLang('new')
           if (fileInputRef.current) {
             fileInputRef.current.click()
           }
-        }else if (selectedLang !== '' && selectedLang !== 'new'){
+        } else if (selectedLang !== '' && selectedLang !== 'new') {
           const strings = await loadStringsXml(`values-${selectedLang}`)
           setStringsTranslation(strings)
           setStringsTranslationXml(generateStringsXml(strings))
-        }else if(selectedLang === 'new'){
+        } else if(selectedLang === 'new') {
           setStringsTranslation({})
           setStringsTranslationXml(generateStringsXml({}))
         }
@@ -488,9 +489,11 @@
         console.log('onChange', e)
         setSelectedLang(e.target.value)
       }
+
       const fixTextareaSize = (event) => {
         event.target.style.height = `${event.target.scrollHeight - 4}px`
       }
+
       const onTranslationInput = (event, key) => {
         const newStringsTranslation = {
           ...stringsTranslation,
@@ -516,6 +519,7 @@
           reader.readAsText(file)
         })
       }
+
       const onFileChange = async (event) => {
         try {
           const stringsRaw = await readFileAsText(event.currentTarget.files[0])
@@ -570,7 +574,7 @@
               </tr>
             </thead>
             <tbody>
-              {Object.keys(stringsEn).sort().map((key) => (
+              {Object.keys(stringsEn).map((key) => (
                 <tr key={key} style={{/*backgroundColor: (stringsTranslation[key] !== '' ) ? 'red' : ''*/}}>
                   <td>{addWordBreaks(key)}</td>
                   <td>{formatTranslatableString(stringsEn[key])}</td>
