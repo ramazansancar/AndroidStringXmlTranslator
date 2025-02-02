@@ -38,6 +38,7 @@ The translator uses HTML and JavaScript to translate the XML files.
 
 - [GitHub Repo](https://github.com/yuliskov/SmartTube)
 - [Translator for Android Apps (strings.xml)](https://jtbrinkmann.de/tools/android-strings.xml-translator.html)
+- [Developer](https://github.com/jtbrinkmann)
 
 ## License
 
