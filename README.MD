@@ -1,33 +1,42 @@
 # Android String XML Translator
 
-This is a html page that can be used to translate Android string XML files.
+This is a web page that can be used to translate Android string XML files.
 
-## How to use
+## How to Use
 
-Firstly, `repo`, `path` and `branch` constant are required to be set in the html file.
+You can customize the repository, path, and branch by adding query parameters to the URL. Here are the available parameters:
 
-Example:
+- **repo**: The GitHub repository in the format `username/repo`. Default is `emanuele-f/PCAPdroid`.
+- **path**: The path to the strings.xml file within the repository. Default is `app/src/main/res`.
+- **branch**: The branch of the repository. Default is `master`.
 
-```js
-const repo = 'emanuele-f/PCAPdroid'
-const path = 'app/src/main/res'
-const branch = 'master'
+### Example URL
+
+```plaintext
+https://ramazansancar.github.io/AndroidStringXmlTranslator/index.html
+?repo=yuliskov/SmartTube
+&path=common/src/main/res
+&branch=master
 ```
 
-1. Open the html file in a browser.
-2. Select the source language and the target language.
-3. Select the source XML file.
-4. Select the target XML file.
-5. Click on the "Translate" button.
-6. The translated XML file will be downloaded.
+### Steps
 
-## How it works
+1. Open the HTML file in a browser or use the provided URL with the parameters set.
+2. Select the target language. (The source language is the language of the `strings.xml` file.)
+3. Click on the "Translate" button.
+4. The translated XML file will be downloaded.
+
+### Notes
+
+The tool uses the `strings.xml` file as the source and provides translations in the selected target language.
+
+## How It Works
 
 The translator uses HTML and JavaScript to translate the XML files.
 
 ## Source
 
-- [Github Repo](https://github.com/yuliskov/SmartTube)
+- [GitHub Repo](https://github.com/yuliskov/SmartTube)
 - [Translator for Android Apps (strings.xml)](https://jtbrinkmann.de/tools/android-strings.xml-translator.html)
 
 ## License

@@ -16,9 +16,11 @@
       color: #333;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
+
     #appWrapper {
       padding: 20px;
     }
+
     .formatting-node > abbr {
       color: #888;
       font-family: monospace;
@@ -135,6 +137,11 @@
       padding: 2px 4px;
       border-radius: 4px;
     }
+
+    .information strong {
+      color: #333;
+    }
+
     .repo-info {
       background-color: #e9ecef;
       border: 1px solid #ced4da;
@@ -167,10 +174,19 @@
     <p>Examples:</p>
     <ul>
       <li><code>?repo=example/repo&path=src/res&branch=develop</code></li>
-      <li><code>?repo=yuliskov/SmartTubeNext&path=common/src/main/res&branch=master</code></li>
+      <li><code>?repo=yuliskov/SmartTube&path=common/src/main/res&branch=master</code></li>
       <li><code>?repo=emanuele-f/PCAPdroid&path=app/src/main/res&branch=master</code></li>
       <li><code>?repo=mostafaalagamy/Metrolist&path=app/src/main/res&branch=main</code></li>
     </ul>
+    <p>
+      <strong>Note:</strong> The repository must be public, and the strings.xml file must be accessible without authentication.
+    </p>
+    <p>
+      <strong>Disclaimer:</strong> This tool is provided as-is without any guarantees. Please review the generated strings.xml file before submitting it to the app developers.
+    </p>
+    <p>
+      <strong>Source:</strong> <a href="https://jtbrinkmann.de/tools/android-strings.xml-translator.html">View the source</a> | <a href="https://github.com/yuliskov/SmartTube">Repository</a>
+    </p>
   </div>
   <div id="appWrapper">Loading...</div>
   <script type="text/babel">
@@ -373,7 +389,6 @@
         fetch(
             // `https://raw.githubusercontent.com/yuliskov/SmartTubeNext/master/common/src/main/res/${valuesFolderName}/strings.xml`
             `https://raw.githubusercontent.com/${repo}/${branch}/${path}/${valuesFolderName}/strings.xml`
-          
         )
           .then((r) => r.text())
           .then(parseStringsXml)
